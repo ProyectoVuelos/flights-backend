@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import date
 from typing import List, Optional
 
 from api.core.domain.flight import Flight
@@ -36,8 +37,16 @@ class FlightPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def find_all(self) -> List[Flight]:
+    def find_all(
+        self,
+        search: Optional[str] = None,
+        airport: Optional[str] = None,
+        aircraft_model: Optional[str] = None,
+        flight_date: Optional[date] = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[Flight]:
         """
-        Retrieves a list of all flight records.
+        Retrieves a filtered and paginated list of flight records.
         """
         raise NotImplementedError

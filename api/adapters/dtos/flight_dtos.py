@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -17,18 +18,29 @@ class FlightPostRequest(BaseModel):
     aircraft_reg: Optional[str] = Field(
         None, description="Aircraft registration, e.g., 'N123UA'."
     )
-    departure: Optional[str] = Field(
+
+    departure_icao: Optional[str] = Field(
         None, description="4-letter ICAO airport code for departure."
     )
-    arrival: Optional[str] = Field(
+    arrival_icao: Optional[str] = Field(
         None, description="4-letter ICAO airport code for arrival."
     )
-    distance_km: Optional[float] = Field(
-        None, description="Total flight distance in kilometers."
+    distance_calculated_km: Optional[float] = Field(
+        None, description="Calculated flight distance in kilometers."
     )
-    circle_distance: Optional[float] = Field(
+    great_circle_distance_km: Optional[float] = Field(
         None, description="Geodesic distance in kilometers."
     )
+    departure_time_utc: Optional[datetime] = Field(
+        None, description="Actual departure time in UTC."
+    )
+    arrival_time_utc: Optional[datetime] = Field(
+        None, description="Actual arrival time in UTC."
+    )
+    flight_duration_s: Optional[int] = Field(
+        None, description="Total flight duration in seconds."
+    )
+
     duration_takeoff_s: Optional[int] = Field(
         None, description="Duration of takeoff phase in seconds."
     )
@@ -44,6 +56,7 @@ class FlightPostRequest(BaseModel):
     duration_landing_s: Optional[int] = Field(
         None, description="Duration of landing phase in seconds."
     )
+
     fuel_takeoff_kg: Optional[float] = Field(
         None, description="Fuel consumption during takeoff in kg."
     )
@@ -59,6 +72,7 @@ class FlightPostRequest(BaseModel):
     fuel_landing_kg: Optional[float] = Field(
         None, description="Fuel consumption during landing in kg."
     )
+
     co2_takeoff_kg: Optional[float] = Field(
         None, description="CO2 emissions during takeoff in kg."
     )

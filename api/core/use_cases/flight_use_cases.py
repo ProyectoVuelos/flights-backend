@@ -1,7 +1,9 @@
-from typing import List
+from datetime import date
+from typing import List, Optional
 
 from api.core.domain.flight import Flight
-from api.core.exceptions.flights_exceptions import FlightNotFoundError
+from api.core.exceptions.flights_exceptions import (FlightCannotBeAddedError,
+                                                    FlightNotFoundError)
 from api.core.ports.flight_port import FlightPort
 
 
@@ -23,7 +25,13 @@ class FlightUseCase:
         Adds a new flight record to the system.
         Returns the Flight object, which may now contain a database-generated ID.
         """
-        return self.flight_port.add(new_flight)
+        flight = self.flight_port.add(new_flight)
+
+        if flight is None:
+            raise FlightCannotBeAddedError(
+                f"Flight {new_flight.flight} cannot be added to the system."
+            )
+        return flight
 
     def get_flight_by_id(self, flight_id: int) -> Flight:
         """
@@ -45,8 +53,24 @@ class FlightUseCase:
             raise FlightNotFoundError(f"Flight with FR24 ID: {fr24_id} not found.")
         return flight
 
-    def get_all_flights(self) -> List[Flight]:
+    def get_all_flights(
+        self,
+        search: Optional[str] = None,
+        airport: Optional[str] = None,
+        aircraft_model: Optional[str] = None,
+        flight_date: Optional[date] = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> List[dict]:
         """
-        Retrieves all flight records in the system.
+        Retrieves a filtered list of flights.
         """
-        return self.flight_port.find_all()
+        flights = self.flight_port.find_all(
+            search=search,
+            airport=airport,
+            aircraft_model=aircraft_model,
+            flight_date=flight_date,
+            limit=limit,
+            offset=offset,
+        )
+        return [flight.to_dict() for flight in flights]

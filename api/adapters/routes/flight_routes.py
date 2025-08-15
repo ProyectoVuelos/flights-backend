@@ -1,8 +1,9 @@
 import json
 from typing import List
 
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 
+from api.adapters.dtos.filter_dtos import FlightQueryFilters
 from api.adapters.dtos.flight_dtos import FlightPostRequest
 from api.adapters.dtos.flight_position_dtos import FlightPositionPostRequest
 from api.adapters.repositories.supabase.flight_position_repository import \
@@ -48,23 +49,22 @@ def create_flight(new_flight_data: FlightPostRequest) -> Response:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
-@flights_router.get("")
-def get_all_flights() -> Response:
+@flights_router.get("", response_model=List[dict])
+def get_all_flights(
+    filters: FlightQueryFilters = Depends(),
+):
     """
-    Retrieves all flight records.
+    Retrieves a paginated and filtered list of flight records.
     """
     try:
-        flights = flight_service.get_all_flights()
-        flights_dicts = [flight.to_dict() for flight in flights]
+        flights_dicts = flight_service.get_all_flights(**filters.model_dump())
 
-        return Response(
-            content=json.dumps(flights_dicts),
-            media_type="application/json",
-            status_code=status.HTTP_200_OK,
-        )
+        return flights_dicts
+
     except Exception as e:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An internal error occurred while retrieving flights.",
         )
 
 

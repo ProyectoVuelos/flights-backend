@@ -12,6 +12,7 @@ from api.adapters.repositories.supabase.flight_repository import \
     SupabaseFlightRepository
 from api.core.exceptions.flights_exceptions import FlightNotFoundError
 from api.core.use_cases.flight_position_use_cases import FlightPositionUseCase
+from api.core.use_cases.flight_summary_use_cases import GetFlightSummaryUseCase
 from api.core.use_cases.flight_use_cases import FlightUseCase
 
 flight_repository = SupabaseFlightRepository()
@@ -46,7 +47,8 @@ def create_flight(new_flight_data: FlightPostRequest) -> Response:
             status_code=status.HTTP_201_CREATED,
         )
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @flights_router.get("", response_model=List[dict])
@@ -68,6 +70,28 @@ def get_all_flights(
         )
 
 
+@flights_router.get(
+    "/summary",
+    summary="Get Global Flight Summary Metrics",
+    tags=["Flights"],
+)
+def get_flight_summary():
+    """
+    Retrieves aggregated summary metrics for all flights in the database.
+    Ideal for displaying initial dashboard stats.
+    """
+    repo = SupabaseFlightRepository()
+    use_case = GetFlightSummaryUseCase(flight_port=repo)
+    summary = use_case.execute()
+
+    if not summary:
+        raise HTTPException(
+            status_code=404, detail="No flight data found to generate a summary."
+        )
+
+    return summary.to_dict(),
+
+
 @flights_router.get("/{flight_id}")
 def get_flight_by_id(flight_id: int) -> Response:
     """
@@ -82,7 +106,8 @@ def get_flight_by_id(flight_id: int) -> Response:
             status_code=status.HTTP_200_OK,
         )
     except FlightNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -103,7 +128,8 @@ def get_flight_by_fr24_id(fr24_id: str) -> Response:
             status_code=status.HTTP_200_OK,
         )
     except FlightNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -122,7 +148,8 @@ def add_flight_positions(
 
         new_positions = [pos.to_domain_model() for pos in positions]
 
-        success = position_service.add_positions_to_flight(flight_id, new_positions)
+        success = position_service.add_positions_to_flight(
+            flight_id, new_positions)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -130,13 +157,16 @@ def add_flight_positions(
             )
 
         return Response(
-            content=json.dumps({"message": "Flight positions added successfully."}),
+            content=json.dumps(
+                {"message": "Flight positions added successfully."}),
             status_code=status.HTTP_201_CREATED,
         )
     except FlightNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @flights_router.get("/{flight_id}/positions")
@@ -155,7 +185,8 @@ def get_flight_positions(flight_id: int) -> Response:
             status_code=status.HTTP_200_OK,
         )
     except FlightNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
@@ -178,8 +209,10 @@ def delete_flight_positions(flight_id: int) -> Response:
             )
 
         return Response(
-            content=json.dumps({"message": "Flight positions deleted successfully."}),
+            content=json.dumps(
+                {"message": "Flight positions deleted successfully."}),
             status_code=status.HTTP_200_OK,
         )
     except FlightNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

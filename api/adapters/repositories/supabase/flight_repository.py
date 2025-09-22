@@ -33,7 +33,7 @@ class SupabaseFlightRepository(FlightPort):
             )
 
             if response.data:
-                return Flight.from_dict(response.data[0])
+                return Flight.from_db_row(response.data[0])
             return None
 
         except Exception as e:
@@ -54,7 +54,7 @@ class SupabaseFlightRepository(FlightPort):
             )
 
             if response.data:
-                return Flight.from_dict(response.data)
+                return Flight.from_db_row(response.data)
             return None
         except Exception as e:
             print(f"Error retrieving flight by ID '{flight_id}': {e}")
@@ -74,7 +74,7 @@ class SupabaseFlightRepository(FlightPort):
             )
 
             if response.data:
-                return Flight.from_dict(response.data)
+                return Flight.from_db_row(response.data)
             return None
         except Exception as e:
             print(f"Error retrieving flight by FR24 ID '{fr24_id}': {e}")
@@ -119,9 +119,25 @@ class SupabaseFlightRepository(FlightPort):
             ).execute()
 
             if response.data:
-                return [Flight.from_dict(data) for data in response.data]
+                return [Flight.from_db_row(data) for data in response.data]
             return []
 
         except Exception as e:
             print(f"Error retrieving all flights with filters: {e}")
             return []
+
+    def get_summary_metrics(self) -> Optional[dict]:
+        """
+        Llama a la función de la base de datos para obtener las métricas de resumen.
+        """
+        try:
+            response: PostgrestAPIResponse = self.supabase.rpc(
+                "get_flight_summary_metrics", {}
+            ).execute()
+
+            if response.data:
+                return response.data[0]
+            return None
+        except Exception as e:
+            print(f"Error retrieving summary metrics: {e}")
+            return None

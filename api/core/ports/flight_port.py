@@ -50,3 +50,10 @@ class FlightPort(ABC):
         Retrieves a filtered and paginated list of flight records.
         """
         raise NotImplementedError
+    
+    @abstractmethod
+    def get_summary_metrics(self) -> Optional[dict]:
+        """
+        Retrieves the SQL calculation for data metrics.
+        """
+        raise NotImplementedError
